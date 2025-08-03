@@ -23,8 +23,8 @@ interface Whisky {
 const endpoint: string = import.meta.env.VITE_API_ENDPOINT;
 
 const search = ref('')
-const colors = ref(['#99A9BF', '#F7BA2A', '#FF9900'])
 const dialogFormVisible = ref(false)
+const dialogForm2Visible = ref(false)
 const tableData = ref<Whisky[]>([])
 const database = ref<Whisky[]>([])
 const form = reactive({
@@ -33,6 +33,14 @@ const form = reactive({
   purchased: '',
   store: '',
   score: 0
+})
+const form2 = reactive({
+  name: '',
+  apikey: '',
+  hits: 0,
+  max: 0,
+  min: 0,
+  shops: []
 })
 const selected = ref<null | Whisky>(null)
 const storeExchange = useExchangeStore()
@@ -61,6 +69,14 @@ const createFilter = (queryString: string) => {
 const handleAppend = () => {
   dialogFormVisible.value = true
 }
+const handleCheck = (index: number, row: Whisky) => {
+  console.log(index)
+  dialogForm2Visible.value = true
+  form2.name = row.name
+  form2.max = 0
+  form2.min = 0
+  form2.shops = []
+}
 const handleDelete = (index: number, row: Whisky) => {
   console.log(index)
   tableData.value.splice(index)
@@ -74,6 +90,9 @@ const handleCancel = () => {
   form.purchased = ""
   form.store = ""
   form.score = 0
+}
+const handleCancel2 = () => {
+  dialogForm2Visible.value = false
 }
 const handleConfirm = () => {
   tableData.value.push({
@@ -110,6 +129,24 @@ const handleSelect = (item: Whisky) => {
     }
   }
   console.log(item)
+}
+const handleSearch = () => {
+  axios.get(`https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?format=json&keyword=${encodeURIComponent(form2.name)}&applicationId=${form2.apikey}`)
+    .then((response) => {
+      console.log(response.data)
+      form2.hits = response.data.hits
+      if (response.data.Items.length > 0) {
+        form2.max = Math.max(...response.data.Items.map((x: any) => x.Item.itemPrice))
+        form2.min = Math.min(...response.data.Items.map((x: any) => x.Item.itemPrice))
+        form2.shops = response.data.Items.map((x: any) => x.Item.shopName)
+        form2.shops = form2.shops.filter((element: never, index: number) => {
+          return form2.shops.indexOf(element) == index
+        })
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    })
 }
 const updateWishlist = () => {
   axios.put(`${endpoint}/wishlist`, tableData.value)
@@ -173,6 +210,12 @@ onMounted(() => {
         <template #default="scope">
           <el-button
             size="small"
+            @click="handleCheck(scope.$index, scope.row)"
+          >
+            Check
+          </el-button>
+          <el-button
+            size="small"
             type="danger"
             @click="handleDelete(scope.$index, scope.row)"
           >
@@ -201,6 +244,32 @@ onMounted(() => {
         <el-button @click="handleCancel">Cancel</el-button>
         <el-button type="primary" @click="handleConfirm" :disabled="!selected">
           Confirm
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+  <el-dialog v-model="dialogForm2Visible" title="Check whisky in store" width="500">
+    <el-form :model="form2">
+      <el-form-item label="Name">
+        <el-input v-model="form2.name" disabled />
+      </el-form-item>
+      <el-form-item label="Rakuten Application ID">
+        <el-input v-model="form2.apikey" />
+      </el-form-item>
+    </el-form>
+    <div style="display: flex;">
+      <el-statistic title="Hits" :value="form2.hits" />
+      <el-statistic title="Max Price" :value="form2.max" style="margin-left: 2em;" />
+      <el-statistic title="Min Price" :value="form2.min" style="margin-left: 2em;" />
+    </div>
+    <div>
+      <el-tag v-for="shop in form2.shops">{{ shop }}</el-tag>
+    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="handleCancel2">Cancel</el-button>
+        <el-button type="primary" @click="handleSearch" :disabled="form2.apikey == ''">
+          Search
         </el-button>
       </div>
     </template>

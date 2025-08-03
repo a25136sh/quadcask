@@ -35,4 +35,5 @@ $ cd ..
 $ pyinstaller quadcask.spec
 $ mkdir -p dist/quadcask/frontend
 $ cp -r frontend/dist dist/quadcask/frontend
+$ cp whisky_database.csv dist/quadcask
 ```
