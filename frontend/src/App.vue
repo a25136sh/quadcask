@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import router from './router/index.ts'
-
+import { List, Star } from '@element-plus/icons-vue'
 const activeIndex = ref('/')
-const handleSelect = (key: string, keyPath: string[]) => {
-  console.log(key)
-  router.push({ path: key })
-}
-
-const message = ref<string>("Push the button!");
 </script>
 
 <template>
@@ -16,12 +9,12 @@ const message = ref<string>("Push the button!");
     <el-menu
       :default-active="activeIndex"
       mode="horizontal"
+      :router="true"
       :ellipsis="false"
-      @select="handleSelect"
     >
-      <el-menu-item>Quadcask</el-menu-item>
-      <el-menu-item index="/">Storage</el-menu-item>
-      <el-menu-item index="/wishlist">Wishlist</el-menu-item>
+      <el-menu-item index="/about">Quadcask</el-menu-item>
+      <el-menu-item index="/"><el-icon><List /></el-icon>Storage</el-menu-item>
+      <el-menu-item index="/wishlist"><el-icon><Star /></el-icon>Wishlist</el-menu-item>
     </el-menu>
   </header>
 
