@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { List, Star } from '@element-plus/icons-vue'
+import { useExchangeStore } from './stores/exchange'
+
 const activeIndex = ref('/')
+const storeExchange = useExchangeStore()
+storeExchange.load()
 </script>
 
 <template>
